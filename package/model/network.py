@@ -157,7 +157,7 @@ class Network:
         Push the simulation forwards one time step
     """
 
-    def __init__(self, parameters: list):
+    def __init__(self, parameters: dict):
         """
         Constructs all the necessary attributes for the Network object.
 
@@ -230,10 +230,28 @@ class Network:
         self.b_attitude = parameters["b_attitude"]
         self.a_threshold = parameters["a_threshold"]
         self.b_threshold = parameters["b_threshold"]
+        self.a_pU = parameters["a_pU"]
+        self.a_pC = parameters["a_pC"]
+        self.a_pR = parameters["a_pR"]
+        self.b_pU = parameters["b_pU"]
+        self.b_pC = parameters["b_pC"]
+        self.b_pR = parameters["b_pR"]
+        self.a_thresholdpU = parameters["a_thresholdspU"]
+        self.a_thresholdpC = parameters["a_thresholdspC"]
+        self.a_thresholdpR = parameters["a_thresholdspR"]
+        self.b_thresholdpU = parameters["b_thresholdspU"]
+        self.b_thresholdpC = parameters["b_thresholdspC"]
+        self.b_thresholdpR = parameters["b_thresholdspR"]
 
         (
             self.attitude_matrix_init,
             self.threshold_matrix_init,
+            self.thresholdspU_init,
+            self.thresholdspC_init,
+            self.thresholdspR_init,
+            self.pU_matrix_init,
+            self.pC_matrix_init,
+            self.pR_matrix_init
         ) = self.generate_init_data_behaviours()
 
         self.agent_list = self.create_agent_list()
@@ -245,6 +263,7 @@ class Network:
         self.shuffle_agent_list()#partial shuffle of the list based on identity
 
         self.social_component_matrix = self.calc_social_component_matrix()
+        self.TA_component_matrix = self.calc_TA_component_matrix()
 
         if self.alpha_change == ("static_culturally_determined_weights" or "dynamic_culturally_determined_weights"):
             self.weighting_matrix, self.total_identity_differences,__ = self.update_weightings()
@@ -267,6 +286,7 @@ class Network:
         if self.save_timeseries_data:
             self.history_weighting_matrix = [self.weighting_matrix]
             self.history_social_component_matrix = [self.social_component_matrix]
+            self.history_social_TA_matrix = [self.TA_component_matrix]
             self.history_time = [self.t]
             self.weighting_matrix_convergence = 0  # there is no convergence in the first step, to deal with time issues when plotting
             self.history_weighting_matrix_convergence = [
@@ -413,7 +433,7 @@ class Network:
             )  # generate pair of indicies to swap
             self.agent_list[b], self.agent_list[a] = self.agent_list[a], self.agent_list[b]
 
-    def generate_init_data_behaviours(self) -> tuple[npt.NDArray, npt.NDArray]:
+    def generate_init_data_behaviours(self) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray, npt.NDArray ]:
         """
         Generate the initial values for agent behavioural attitudes and thresholds using Beta distribution
 
@@ -440,10 +460,49 @@ class Network:
             for n in range(self.N)
         ]
 
+        pU_list = [
+            np.random.beta(self.a_pU, self.b_pU, size=self.M)
+            for n in range(self.N)
+        ]
+
+        pC_list = [
+            np.random.beta(self.a_pC, self.b_pC, size=self.M)
+            for n in range(self.N)
+        ]
+
+        pR_list = [
+            np.random.beta(self.a_pR, self.b_pR, size=self.M)
+            for n in range(self.N)
+        ]
+
+        thresholdspU_list = [
+            np.random.beta(self.a_thresholdpU, self.b_thresholdpU, size=self.M)
+            for n in range(self.N)
+        ]
+
+        thresholdspC_list = [
+            np.random.beta(self.a_thresholdpC, self.b_thresholdpC, size=self.M)
+            for n in range(self.N)
+        ]
+
+        thresholdspR_list = [
+            np.random.beta(self.a_thresholdpR, self.b_thresholdpR, size=self.M)
+            for n in range(self.N)
+        ]
+
+
         attitude_matrix = np.asarray(attitude_list)
         threshold_matrix = np.asarray(threshold_list)
+        pU_matrix = np.asarray(pU_list)
+        pC_matrix = np.asarray(pC_list)
+        pR_matrix = np.asarray(pR_list)
+        thresholdspU_matrix = np.asarray(thresholdspU_list)
+        thresholdspC_matrix = np.asarray(thresholdspC_list)
+        thresholdspR_matrix = np.asarray(thresholdspR_list)
 
-        return attitude_matrix, threshold_matrix
+
+
+        return attitude_matrix, threshold_matrix, pU_matrix, pC_matrix, pR_matrix, thresholdspU_matrix, thresholdspC_matrix, thresholdspR_matrix
 
     def create_agent_list(self) -> list[Individual]:
         """
@@ -475,6 +534,12 @@ class Network:
                 self.threshold_matrix_init[n],
                 self.normalized_discount_array,
                 self.cultural_inertia,
+                self.pU_matrix_init[n],
+                self.pC_matrix_init[n],
+                self.pR_matrix_init[n],
+                self.thresholdspU_init[n],
+                self.thresholdspC_init[n],
+                self.thresholdspR_init[n],
                 n
             )
             for n in range(self.N)
@@ -544,6 +609,19 @@ class Network:
         neighbour_influence = np.matmul(self.weighting_matrix, behavioural_attitude_matrix)
         
         return neighbour_influence
+    
+    def calc_ego_influence_degroot_TA(self) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
+        
+        pU_matrix = np.asarray([n.pU for n in self.agent_list])
+        neighbour_pU_influence = np.matmul(self.weighting_matrix, pU_matrix)
+        
+        pC_matrix = np.asarray([n.pC for n in self.agent_list])
+        neighbour_pC_influence = np.matmul(self.weighting_matrix, pC_matrix)
+
+        pR_matrix = np.asarray([n.pR for n in self.agent_list])
+        neighbour_pR_influence = np.matmul(self.weighting_matrix, pR_matrix)
+
+        return neighbour_pU_influence, neighbour_pC_influence, neighbour_pR_influence 
 
     def calc_ego_influence_degroot_independent(self) -> npt.NDArray:
         """
@@ -591,6 +669,27 @@ class Network:
             loc=0, scale=self.learning_error_scale, size=(self.N, self.M)
         )
         return social_influence
+
+    def calc_TA_component_matrix(self) -> tuple[npt.NDArray, npt.NDArray, npt.NDArray]:
+
+        if self.alpha_change == "behavioural_independence":
+            raise NotImplementedError
+        else:
+            ego_TA_influence_pU, ego_TA_influence_pC, ego_TA_influence_pR, = self.calc_ego_influence_degroot_TA()           
+
+        social_influence_pU = ego_TA_influence_pU + np.random.normal(
+            loc=0, scale=self.learning_error_scale, size=(self.N, self.M)
+        )
+
+        social_influence_pC = ego_TA_influence_pC + np.random.normal(
+            loc=0, scale=self.learning_error_scale, size=(self.N, self.M)
+        )
+
+        social_influence_pR = ego_TA_influence_pR + np.random.normal(
+            loc=0, scale=self.learning_error_scale, size=(self.N, self.M)
+        )
+
+        return social_influence_pU, social_influence_pC, social_influence_pR
 
     def calc_total_weighting_matrix_difference(
         self, matrix_before: npt.NDArray, matrix_after: npt.NDArray
@@ -756,9 +855,10 @@ class Network:
         -------
         None
         """
+        pU,pC,pR = self.TA_component_matrix
         for i in range(self.N):
             self.agent_list[i].next_step(
-                self.t, self.social_component_matrix[i]
+                self.t, self.social_component_matrix[i], (pU[i], pC[i], pR[i])
             )
 
     def save_timeseries_data_network(self):
@@ -822,6 +922,7 @@ class Network:
             self.weighting_matrix_list = self.update_weightings_list()
 
         self.social_component_matrix = self.calc_social_component_matrix()
+        self.TA_component_matrix = self.calc_TA_component_matrix()
         self.total_carbon_emissions_flow = self.calc_total_emissions_flow()
         self.total_carbon_emissions_stock += self.total_carbon_emissions_flow
         (
