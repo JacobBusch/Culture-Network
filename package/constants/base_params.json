@@ -1,11 +1,17 @@
 {
-    "save_timeseries_data": 1, 
-    "alpha_change" : "dynamic_culturally_determined_weights",
+    "save_timeseries_data": 1,
+    "alpha_change": "dynamic_culturally_determined_weights",
     "time_steps_max": 3000,
     "phi_lower": 0.01,
     "phi_upper": 0.05,
     "compression_factor": 10,
-    "seed_list": [1,2,3,4,5],
+    "seed_list": [
+        1,
+        2,
+        3,
+        4,
+        5
+    ],
     "set_seed": 1,
     "N": 200,
     "M": 3,
@@ -20,5 +26,8 @@
     "b_attitude": 1,
     "a_threshold": 1,
     "b_threshold": 1,
-    "green_N": 0
+    "green_N": 0,
+    "Model_Setup": "default",
+    "threshold_drift": 0.001,
+    "threshold_noise": 0.2,
 }

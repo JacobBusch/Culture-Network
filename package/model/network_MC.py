@@ -11,7 +11,7 @@ Created: 10/10/2022
 import numpy as np
 import networkx as nx
 import numpy.typing as npt
-from package.model.individuals import Individual
+from package.model.individuals_MC import Individual
 from package.model.one_m_green_influencer import Individual_one_m_green_influencer
 
 # modules
@@ -232,18 +232,18 @@ class Network:
         self.b_attitude = parameters["b_attitude"]
         self.a_threshold = parameters["a_threshold"]
         self.b_threshold = parameters["b_threshold"]
-        self.a_pU = parameters["a_pU"]
-        self.a_pC = parameters["a_pC"]
-        self.a_pR = parameters["a_pR"]
-        self.b_pU = parameters["b_pU"]
-        self.b_pC = parameters["b_pC"]
-        self.b_pR = parameters["b_pR"]
-        self.a_thresholdpU = parameters["a_thresholdspU"]
-        self.a_thresholdpC = parameters["a_thresholdspC"]
-        self.a_thresholdpR = parameters["a_thresholdspR"]
-        self.b_thresholdpU = parameters["b_thresholdspU"]
-        self.b_thresholdpC = parameters["b_thresholdspC"]
-        self.b_thresholdpR = parameters["b_thresholdspR"]
+        self.a_pU =  np.random.uniform(0.1, 15)
+        self.a_pC =  np.random.uniform(0.1, 15)
+        self.a_pR =  np.random.uniform(0.1, 15)
+        self.b_pU =  np.random.uniform(0.1, 15)
+        self.b_pC =  np.random.uniform(0.1, 15)
+        self.b_pR =  np.random.uniform(0.1, 15)
+        self.a_thresholdpU =  np.random.uniform(0.1, 15)
+        self.a_thresholdpC =  np.random.uniform(0.1, 15)
+        self.a_thresholdpR =  np.random.uniform(0.1, 15)
+        self.b_thresholdpU =  np.random.uniform(0.1, 15)
+        self.b_thresholdpC =  np.random.uniform(0.1, 15)
+        self.b_thresholdpR =  np.random.uniform(0.1, 15)
 
         (
             self.attitude_matrix_init,

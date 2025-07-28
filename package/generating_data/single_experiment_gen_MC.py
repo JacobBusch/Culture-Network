@@ -8,7 +8,7 @@ for a given initial set seed.
 Created: 10/10/2022
 """
 # imports
-from package.resources.run import generate_data
+from package.resources.run_MC import generate_data
 from package.resources.utility import (
     createFolder, 
     save_object, 

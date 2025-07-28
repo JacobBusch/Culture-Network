@@ -22,6 +22,9 @@ from package.resources.plot import (
     plot_joint_cluster_micro,
     print_live_initial_identity_network,
     live_animate_identity_network_weighting_matrix,
+    plot_thresholds_timeseries,
+    plot_average_behavior_threshold_timeseries,
+    plot_average_thresholds_timeseries,
 )
 
 
@@ -68,10 +71,13 @@ def main(
 
         plot_value_timeseries(fileName,Data,dpi_save,latex_bool = latex_bool)
         plot_attitude_timeseries(fileName,Data,dpi_save,latex_bool = latex_bool)
+        plot_thresholds_timeseries(fileName,Data,dpi_save,latex_bool = latex_bool)
+        plot_average_behavior_threshold_timeseries(fileName,Data,dpi_save,latex_bool = latex_bool)
         plt.show()
     elif PLOT_NAME == "NETWORK":
         plot_total_carbon_emissions_timeseries(fileName, Data, dpi_save,latex_bool = latex_bool)
         plot_weighting_matrix_convergence_timeseries(fileName, Data, dpi_save,latex_bool = latex_bool)
+        plot_average_thresholds_timeseries(fileName, Data, dpi_save,latex_bool = latex_bool)
         if Data.alpha_change != "behavioural_independence":
             plot_cultural_range_timeseries(fileName, Data, dpi_save,latex_bool = latex_bool)
             plot_average_identity_timeseries(fileName,Data,dpi_save,latex_bool = latex_bool)

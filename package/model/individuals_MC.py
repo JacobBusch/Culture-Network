@@ -126,19 +126,21 @@ class Individual:
         self.thresholdspU = init_data_thresholdspU
         self.thresholdspC = init_data_thresholdspC
         self.thresholdspR = init_data_thresholdspR
-        self.TA = 0.6 * self.pU + 0.1 * self.pC + 0.3 * self.pR
+        identity_rng = np.random.default_rng(seed=None)
+        C_dirichlet = 100
+        targets_TA = np.array([0.6, 0.1, 0.3])
+        alpha_dirichlet = targets_TA * C_dirichlet
+        self.wpU, self.wpC, self.wpR = identity_rng.dirichlet(alpha_dirichlet)
+        self.TA = self.wpU * self.pU + self.wpC * (1-self.pC) + self.wpR * (1-self.pR)
         self.av_thresholds = np.mean(self.thresholds)
         
         local_rng = np.random.default_rng(seed=None)
         self.threshold_drift = np.clip(local_rng.normal(loc=0.2, scale=0.1),0,None)
         self.threshold_noise = np.clip(local_rng.normal(loc=0.0015, scale=0.00075), 1e-6, None)
-        identity_rng = np.random.default_rng(seed=None)
+        
         self.w1 = identity_rng.random()
         self.w2 = 1 - self.w1
-        C_dirichlet = 100
-        targets_TA = np.array([0.6, 0.1, 0.3])
-        alpha_dirichlet = targets_TA * C_dirichlet
-        self.wpU, self.wpC, self.wpR = identity_rng.dirichlet(alpha_dirichlet)
+
         self.thresholdTA_drift = np.clip(local_rng.normal(loc=0.2, scale=0.1),0,None)
         self.thresholdTA_noise = np.clip(local_rng.normal(loc=0.0015, scale=0.00075), 1e-6, None)
 
@@ -387,7 +389,7 @@ class Individual:
 
         elif self.Model_Setup in ["Szenario 2", "TA_2"]:
             drift_per_step = self.thresholdTA_drift/self.time_steps_max
-            delta_TA = (rng.normal(loc=0, scale=self.thresholdTA_noise, size=3))+drift_per_step
+            delta_TA = (rng.normal(loc=0, scale=self.thresholdTA_noise, size=3))-drift_per_step
             self.thresholdspU = np.clip(self.thresholdspU + delta_TA[0], 0, 1)
             self.thresholdspC = np.clip(self.thresholdspC - delta_TA[1], 0, 1)
             self.thresholdspR = np.clip(self.thresholdspR - delta_TA[2], 0, 1)
@@ -395,9 +397,9 @@ class Individual:
         elif self.Model_Setup in ["Szenario 3", "TA_3"]:
             drift_per_step = self.thresholdTA_drift/self.time_steps_max
             delta_TA = rng.normal(loc=0, scale=self.thresholdTA_noise, size=3)+drift_per_step
-            self.thresholdspU = np.clip(self.thresholdspU - delta_TA[0], 0, 1)
-            self.thresholdspC = np.clip(self.thresholdspC + delta_TA[1], 0, 1)
-            self.thresholdspR = np.clip(self.thresholdspR + delta_TA[2], 0, 1)
+            self.thresholdspU = np.clip(self.thresholdspU + delta_TA[0], 0, 1)
+            self.thresholdspC = np.clip(self.thresholdspC - delta_TA[1], 0, 1)
+            self.thresholdspR = np.clip(self.thresholdspR - delta_TA[2], 0, 1)
 
         else:
             print(f"unrecognized Model_Setup: {self.Model_Setup}")

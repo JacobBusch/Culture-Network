@@ -715,7 +715,42 @@ def plot_average_identity_timeseries(fileName: str, Data, dpi_save: int,latex_bo
     property = "history_average_identity"
 
     plot_network_timeseries(fileName, Data, y_title, property, dpi_save)
+    
+def plot_average_thresholds_timeseries(fileName: str, Data, dpi_save: int,latex_bool = False):
+    if latex_bool:
+        set_latex()
+    y_title = "Average thresholds"
+    property = "history_av_thresholds"
 
+    plot_network_timeseries(fileName, Data, y_title, property, dpi_save)
+
+def plot_average_behavior_threshold_timeseries(fileName: str, Data, dpi_save: int, latex_bool=False):
+    if latex_bool:
+        set_latex()
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    # Zeitreihe extrahieren
+    time = Data.history_time
+
+    # Durchschnittswerte extrahieren
+    behaviour = Data.history_av_behaviour
+    thresholds = Data.history_av_thresholds
+
+    # Beide Linien plotten
+    ax.plot(time, behaviour, label="Average Behaviour", color="tab:blue")
+    ax.plot(time, thresholds, label="Average Threshold", color="tab:orange", linestyle="--")
+
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Value")
+    ax.set_ylim(0, 1)
+    ax.legend()
+
+    plt.tight_layout()
+    plot_path = fileName + "/Plots/plot_average_behavior_threshold_timeseries"
+    fig.savefig(plot_path + ".png", dpi=dpi_save)
+    fig.savefig(plot_path + ".eps", dpi=dpi_save)
+    
 def live_animate_identity_network_weighting_matrix(
     fileName: str,
     Data: list,
@@ -836,3 +871,25 @@ def plot_single(data_dict_list,fileName_list, dpi_save, latex_bool = 1):
         f = plotName + "/plot_single_%s" % (len(mean_list))
         fig.savefig(f + ".eps", dpi=dpi_save, format="eps")
         fig.savefig(f + ".png", dpi=dpi_save, format="png")
+        
+def plot_thresholds_timeseries(fileName, Data, dpi_save, latex_bool=False):
+    if latex_bool:
+        set_latex()
+    fig, ax = plt.subplots(figsize=(10, 6))
+    y_title = r"Threshold, $T_{t,n,m}$ (Behaviour 0)"
+
+    for v in Data.agent_list:
+        # Wähle Verhalten m=0
+        thresholds = [t[0] for t in v.history_behaviour_thresholds]
+        ax.plot(np.asarray(Data.history_time), thresholds)
+
+    ax.set_xlabel(r"Time")
+    ax.set_ylabel(r"%s" % y_title)
+    ax.set_ylim(0, 1)
+    plt.tight_layout()
+
+    plotName = fileName + "/Plots"
+    f = plotName + "/plot_thresholds_timeseries_behaviour0"
+    fig.savefig(f + ".eps", dpi=dpi_save, format="eps")
+    fig.savefig(f + ".png", dpi=dpi_save, format="png")
+
